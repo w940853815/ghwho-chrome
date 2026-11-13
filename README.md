@@ -1,158 +1,73 @@
 # ghwho
 
-**简体中文** | [English](README.en.md)
+给 GitHub 用户添加私人备注，在用户名旁认出熟悉的人。由 [w940853815](https://github.com/w940853815) 维护，基于 [suolk/ghwho](https://github.com/suolk/ghwho)。
 
-给 GitHub 用户添加私人备注，显示在用户名旁。支持 Microsoft Edge 和 Firefox（Manifest V3）。
-
-> 已上架 [Microsoft Edge 加载项商店](https://microsoftedge.microsoft.com/addons/detail/ghwho-github-%E7%94%A8%E6%88%B7%E5%A4%87%E6%B3%A8/jepafcbloaophnopbognfebnepklfoea) 和 [Firefox 附加组件商店](https://addons.mozilla.org/addon/ghwho-github-%E7%94%A8%E6%88%B7%E5%A4%87%E6%B3%A8/)。
+[下载最新版本](https://github.com/w940853815/ghwho-chrome/releases/latest) · [问题反馈](https://github.com/w940853815/ghwho-chrome/issues) · [English](README.en.md)
 
 ## 功能
 
-- **到处都能看到备注**：用户个人主页（名字下方显示完整备注）、followers / following 列表、组织和团队成员页、issue / PR / 评论区的作者名、仓库贡献者列表、侧边栏参与者头像
-- **点击即可编辑**：点标签弹出小窗口，添加、修改或删除备注（`Ctrl+Enter` 保存，`Esc` 取消）
-- **悬停阅读**：在已有黄色备注标签上停留约 350 毫秒，再把鼠标移入预览卡片阅读；支持选择文字、滚动查看长备注，备注中的 HTTP / HTTPS 网址和 `www.` 网址可以点击，在新标签页打开
-- **不打扰**：没有备注的用户只在鼠标悬停时显示一个淡淡的 `+备注`；正文里的 @mention 和悬停卡片只显示已有备注
-- **跟随主题**：自动适配 GitHub 的亮色 / 暗色主题
-- **管理面板**：点击工具栏图标，可以搜索全部备注、编辑删除、手动新增、查看存储用量
-- **备份与迁移**：JSON 导出 / 导入，可在 Edge 与 Firefox 之间迁移
-- **中英文界面**：默认跟随浏览器语言，也可以在扩展面板顶部切换为中文或 English；GitHub 页面上的标签和编辑弹窗会立即同步切换，无需刷新
-- **反馈入口**：扩展面板底部可直接打开反馈页或商店评分页
-- **隐私**：没有服务器、不发任何网络请求，备注只保存在你自己的浏览器里（开启浏览器同步时随你自己的浏览器账号同步）
+- 在个人主页、Issue、PR、评论、成员列表和参与者头像旁显示备注。
+- 点击标签编辑；悬停预览，支持长文本和 HTTP/HTTPS 链接。
+- 在扩展面板点击 **隐藏备注 / 显示备注**，立即切换所有已打开 GitHub 页面的备注和添加入口。选择会保留，隐藏不删除数据；管理面板仍可管理备注。
+- 搜索、手动新增、编辑和删除备注，JSON 导入/导出。
+- 中英文界面、亮色和暗色主题。
 
 ## 安装
 
-### 从商店安装
+从 [Releases](https://github.com/w940853815/ghwho-chrome/releases/latest) 下载对应浏览器的 ZIP，解压后保留文件夹。
 
-- **Microsoft Edge**：[在 Edge 加载项商店获取](https://microsoftedge.microsoft.com/addons/detail/ghwho-github-%E7%94%A8%E6%88%B7%E5%A4%87%E6%B3%A8/jepafcbloaophnopbognfebnepklfoea)
-- **Firefox**：[在 Firefox 附加组件商店获取](https://addons.mozilla.org/addon/ghwho-github-%E7%94%A8%E6%88%B7%E5%A4%87%E6%B3%A8/)
+| 浏览器 | 安装包 | 加载方式 |
+| --- | --- | --- |
+| Chrome 109+ | `ghwho-chrome-*.zip` | `chrome://extensions` → 开发者模式 → 加载已解压的扩展程序 |
+| Edge 109+ | `ghwho-edge-*.zip` | `edge://extensions` → 开发人员模式 → 加载解压缩的扩展 |
+| Brave、Vivaldi、Arc 等 Chromium 浏览器 | Chrome 包 | 在浏览器扩展管理页面加载解压目录；需支持相应扩展 API，未逐一实测 |
+| Firefox 140+ | `ghwho-firefox-*.zip` | `about:debugging#/runtime/this-firefox` → 临时载入附加组件 → 选择解压目录的 `manifest.json` |
 
-### 从源码加载（开发 / 预览）
+Firefox 临时加载的扩展会在重启后移除；正式版 Firefox 的持久安装需要 Mozilla 签名，本仓库没有提供已签名的 XPI。Safari 需要另行转换、打包和签名，不包含在本次分发中。
 
-先下载本仓库：`git clone https://github.com/suolk/ghwho.git`，或在页面上点 **Code → Download ZIP** 并解压。
+加载后刷新 GitHub 页面。仅支持 `https://github.com/*`，不包含自建 GitHub Enterprise 域名。
 
-**Edge**
+### 更新与迁移
 
-1. 打开 `edge://extensions`，打开 **开发人员模式**
-2. 点击 **加载解压缩的扩展**，选择仓库根目录（包含 `manifest.json` 的文件夹）
-3. 出现 `browser_specific_settings` 无法识别的提示可以忽略，这是 Firefox 专用字段
+1. 在原扩展面板导出 JSON 备份。
+2. 下载新版 ZIP，解压覆盖原安装目录中的程序文件，保持目录路径不变。
+3. 在扩展管理页点击重新加载，再刷新 GitHub 页面。
+4. 如果换了浏览器、安装目录或扩展 ID，在新扩展中选择 **合并导入**，导入备份。
 
-**Firefox**
+“覆盖导入”会删除备份里没有的现有备注。显示开关和语言设置不会被备注导入覆盖。
 
-1. 打开 `about:debugging#/runtime/this-firefox`
-2. 点击 **临时载入附加组件…**，选择仓库根目录下的 `manifest.json`
-3. 如果点击扩展图标后显示「尚未授权访问 github.com」，点 **授权** 并允许
-4. 临时载入的附加组件在关闭 Firefox 后会被移除
+GitHub Release 负责发布下载包；手动加载的扩展不会自动安装新版，也没有上架 Chrome/Edge/Firefox 商店。商店外 CRX 的安装受浏览器与系统策略限制，因此这里提供解压加载包。
 
-加载后打开任意 GitHub 页面即可使用；修改代码后在扩展管理页点 **重新加载**，再刷新 GitHub 页面。
+## 数据与隐私
 
-## 使用
+备注、显示开关和语言设置使用浏览器的 `storage.sync`：本机保存，启用浏览器同步时可能随浏览器账号同步。它不是严格仅本地存储，也不会在不同浏览器品牌之间自动同步。
 
-- **添加备注**：鼠标悬停在用户名附近，点击出现的 `+备注`；或在个人主页名字下方点 **+ 添加备注**
-- **编辑 / 删除**：点击黄色的备注标签
-- **预览备注**：悬停黄色标签，或用 Tab 聚焦；鼠标可移入卡片，长备注可在卡片里滚动。离开标签和卡片约 250 毫秒后关闭，滚动外部页面或按 `Esc` 立即关闭。聚焦标签后再按 Tab 可进入卡片，继续访问其中的链接
-- **管理全部备注**：点击浏览器工具栏中的扩展图标
+扩展没有自建服务器，不自动发送网络请求。只有 `storage` 和 `https://github.com/*` 权限。备注作为文本插入页面，隐藏开关只控制显示，不会加密或删除备注。
 
-### 在 Edge 和 Firefox 之间迁移
+单条备注最多 2000 字符；同步存储总量约 100 KB、最多 512 个存储项（含设置）。卸载前请先导出备份。
 
-1. 在原浏览器的扩展面板点 **导出 JSON**，得到 `ghwho-notes-YYYYMMDD.json`
-2. 在新浏览器的扩展面板选择 **合并导入**（同一用户保留较新的一条）或 **覆盖导入**（清空后导入），点 **导入 JSON** 选择该文件
+项目仓库和安装包不包含个人备注。GitHub Issues 是公开反馈，请勿提交私人备注、账号信息或未脱敏截图。
 
-> Firefox 的扩展面板在打开文件选择框时会被关闭，所以在 Firefox 中点「导入 JSON」会自动在新标签页打开管理页面，在那里选择文件即可。
+## 开发与自动发布
 
-<details>
-<summary>导出文件格式</summary>
+Node.js 24，无需安装第三方依赖：
 
-```json
-{
-  "format": "ghwho-notes",
-  "version": 1,
-  "exportedAt": "2026-10-08T12:00:00.000Z",
-  "notes": {
-    "torvalds": { "note": "Linux 作者", "updatedAt": 1791460000000 }
-  }
-}
-```
-
-导入也接受直接的 `{ "用户名": { "note", "updatedAt" } }`、`{ "用户名": "备注" }` 或 `[{ "username", "note" }]` 形式。
-
-</details>
-
-## 存储与配额
-
-- 使用浏览器的 `storage.sync`，键为小写 GitHub 用户名，值为 `{ note, updatedAt }`
-- 浏览器限制：总量约 **100KB**、单条约 **8KB**、最多 **512** 条；单条备注最多 2000 字符
-- 保存和导入前会先检查写入后是否超限，超限时给出提示，不会只写入一半
-- 扩展面板底部显示当前用量，接近上限时会变色提示
-
-## 安全与隐私
-
-- 备注使用文本节点插入页面，不使用 `innerHTML`；HTML / 脚本会原样显示为文字，HTTP / HTTPS 网址会生成可点击链接
-- 没有后台脚本，不自动发起网络请求，不收集任何数据；点击备注中的网址时，由浏览器打开对应页面
-- 只申请两项权限：`storage`（保存备注）和 `https://github.com/*`（在 GitHub 页面上显示备注）
-
-## 反馈
-
-- **反馈页**：[feedback.netcache24.site](https://feedback.netcache24.site/?app=ghwho)，内容私下发送给开发者，不需要能访问 GitHub。扩展面板底部的「反馈问题」会直接打开它，并自动填好扩展版本和浏览器
-- **GitHub Issues**：也可以在 [GitHub](https://github.com/suolk/ghwho/issues/new/choose) 公开提交「问题反馈」或「功能建议」
-- **喜欢的话**：欢迎在 [Edge 加载项商店](https://microsoftedge.microsoft.com/addons/detail/ghwho-github-%E7%94%A8%E6%88%B7%E5%A4%87%E6%B3%A8/jepafcbloaophnopbognfebnepklfoea) 或 [Firefox 附加组件商店](https://addons.mozilla.org/addon/ghwho-github-%E7%94%A8%E6%88%B7%E5%A4%87%E6%B3%A8/) 留下评分
-
----
-
-## 开发
-
-### 目录结构
-
-```
-manifest.json         扩展清单（MV3，含 Firefox 的 browser_specific_settings.gecko）
-_locales/             扩展名称、描述的中英文（浏览器标准 i18n，用于商店和扩展管理页）
-src/selectors.js      所有选择器与识别规则（GitHub 改版后主要改这里）
-src/i18n.js           界面文案（中文 / English）与语言切换
-src/storage.js        存储封装：storage.sync、配额检查、导入导出
-src/content.js        注入逻辑：识别用户链接、渲染标签、悬停预览、编辑弹窗、监听 DOM / Turbo
-src/content.css       标签、预览与弹窗样式（使用 GitHub 的 CSS 变量）
-popup/                扩展面板 popup.html / popup.js / popup.css
-icons/                16 / 32 / 48 / 128 图标
-scripts/pack.mjs      打包脚本（无依赖），生成 Edge 与 Firefox 的 zip
-```
-
-代码中统一使用 `const api = globalThis.browser ?? globalThis.chrome;` 调用扩展 API，同一份代码同时运行在 Edge 和 Firefox 上。
-
-### 界面语言
-
-- 所有界面文案在 [`src/i18n.js`](src/i18n.js) 的 `MESSAGES` 中，`zh-CN` 和 `en` 两份词典的键必须一一对应；缺失的键回退到中文
-- 语言偏好存在 `storage.sync` 的 `__ghwho_settings` 键中（`auto` / `zh-CN` / `en`）。这个键不是合法的 GitHub 用户名，不会被当作备注读取、导出，也不会在覆盖导入时被删除
-- 扩展名称、描述和工具栏按钮提示用浏览器标准的 [`_locales`](_locales) 机制，按浏览器语言显示，不受面板里的切换影响
-
-### GitHub 改版后的维护
-
-所有选择器与规则集中在 [`src/selectors.js`](src/selectors.js)：
-
-| 配置项 | 作用 |
-| --- | --- |
-| `userLinks` | 直接认定为用户链接的选择器（默认 `a[data-hovercard-type="user"]` 等） |
-| `fallbackLinks` + `reservedPaths` | URL 规则兜底：`/<username>` 形式、链接文字就是用户名、且不在保留路径中 |
-| `avatar` | 识别"只有头像"的链接 |
-| `ignoreWithin` | 完全不处理的区域（全局导航、页脚等） |
-| `noAddWithin` | 只显示已有备注、不显示 `+备注` 的区域 |
-| `profile` | 个人主页用户名区块 |
-
-调试技巧：处理过的链接会带有 `data-ghwho-user` 属性（值为识别出的用户名，非用户链接为空串），可在开发者工具中用 `document.querySelectorAll('[data-ghwho-user]')` 查看。
-
-GitHub 是 Turbo 驱动的单页应用，脚本通过 `MutationObserver` 加 `turbo:load` / `turbo:render` / `turbo:frame-load` 事件重新扫描，并在 `turbo:before-cache` 时清理注入内容，避免缓存快照里出现重复标签。
-
-### 打包
-
-```bash
+```sh
+node --test
 node scripts/pack.mjs
+python3 tests/check-packages.py
 ```
 
-在 `dist/` 下生成 Edge 和 Firefox 两个 zip 包（需要 Node.js 18+）。
+`dist/` 生成 Chrome、Edge、Firefox 三个 ZIP，包内包含许可证和安装说明。
 
-### 兼容性
+推送到 `main` 后，[Release 工作流](.github/workflows/release.yml) 自动检查、打包并发布 GitHub Release，使用 GitHub 自带的 `GITHUB_TOKEN`。失败时不会公开未完成的 Release，重跑同一次工作流沿用同一版本。
 
-- Edge / Chrome 109+
-- Firefox 140+
+`manifest.json` 中的版本是发布基线 `1.0.4`；CI 将补丁号加上工作流运行序号减一，依次生成 `1.0.4`、`1.0.5` 等版本，并写入安装包。CI 不向源码提交版本号，避免触发循环；手动构建使用源码中的基线版本。不要降低版本基线或更换发布工作流来重置运行序号。
 
-## 许可证
+用户名识别规则位于 `src/selectors.js`；GitHub 页面结构更新后可能需要调整。
 
-[MIT](LICENSE) © 2026 suolk
+## 致谢与许可证
+
+感谢 **[suolk/ghwho](https://github.com/suolk/ghwho)** 提供完整的备注、预览、国际化和导入导出实现。本项目保留其 Git 历史与 MIT 版权声明，并在此基础上增加显示开关、多浏览器打包和自动发布流程，调整项目入口。
+
+原始代码 © 2026 suolk；修改部分 © 2026 w940853815。使用 [MIT 许可证](LICENSE)。

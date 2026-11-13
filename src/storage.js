@@ -13,6 +13,23 @@
   const QUOTA_BYTES_PER_ITEM = 8192;
   const MAX_ITEMS = 512;
   const MAX_NOTE_LENGTH = 2000;
+  const VISIBILITY_KEY = '__ghwho_visible';
+
+  async function getVisibility() {
+    return (await api.storage.sync.get(VISIBILITY_KEY))[VISIBILITY_KEY] !== false;
+  }
+
+  async function setVisibility(visible) {
+    await api.storage.sync.set({ [VISIBILITY_KEY]: visible });
+  }
+
+  function onVisibilityChanged(callback) {
+    const listener = (changes, area) => {
+      if (area === 'sync' && VISIBILITY_KEY in changes) callback(changes[VISIBILITY_KEY].newValue !== false);
+    };
+    api.storage.onChanged.addListener(listener);
+    return () => api.storage.onChanged.removeListener(listener);
+  }
 
   /* GitHub 用户名：字母数字与连字符，最长 39 位（兼容少数历史账号的连续/结尾连字符） */
   const USERNAME_RE = /^[a-z\d](?:[a-z\d-]{0,38})$/i;
@@ -273,6 +290,9 @@
     QUOTA_BYTES_PER_ITEM,
     MAX_ITEMS,
     MAX_NOTE_LENGTH,
+    getVisibility,
+    setVisibility,
+    onVisibilityChanged,
     NoteError,
     normalizeUsername,
     formatKB,

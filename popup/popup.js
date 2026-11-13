@@ -5,11 +5,7 @@
   const { t } = i18n;
 
   const GITHUB_ORIGINS = ['https://github.com/*'];
-  const FEEDBACK_URL = 'https://feedback.netcache24.site/';
-  const STORE_URLS = {
-    edge: 'https://microsoftedge.microsoft.com/addons/detail/ghwho-github-%E7%94%A8%E6%88%B7%E5%A4%87%E6%B3%A8/jepafcbloaophnopbognfebnepklfoea',
-    firefox: 'https://addons.mozilla.org/addon/ghwho-github-%E7%94%A8%E6%88%B7%E5%A4%87%E6%B3%A8/',
-  };
+  const PROJECT_URL = api.runtime.getManifest().homepage_url;
   const isFirefox = typeof api.runtime.getBrowserInfo === 'function';
   const params = new URLSearchParams(location.search);
   const isTab = params.has('tab');
@@ -35,15 +31,41 @@
     importMode: $('import-mode'),
     importFile: $('import-file'),
     openTab: $('open-tab'),
+    visibilityToggle: $('visibility-toggle'),
     lang: $('lang'),
     version: $('version'),
     feedbackIssue: $('feedback-issue'),
-    feedbackRate: $('feedback-rate'),
+    projectHome: $('project-home'),
+    releaseDownload: $('release-download'),
   };
 
   /** @type {Record<string, {note: string, updatedAt: number}>} */
   let notes = {};
   let editing = null; // 正在编辑的用户名
+  let notesVisible = true;
+
+  function renderVisibility() {
+    ui.visibilityToggle.textContent = t(notesVisible ? 'visibility.hide' : 'visibility.show');
+  }
+
+  store.onVisibilityChanged((visible) => {
+    notesVisible = visible;
+    renderVisibility();
+  });
+
+  ui.visibilityToggle.addEventListener('click', async () => {
+    ui.visibilityToggle.disabled = true;
+    try {
+      const next = !notesVisible;
+      await store.setVisibility(next);
+      notesVisible = next;
+      renderVisibility();
+    } catch (err) {
+      flash(err?.message ?? String(err), 'error');
+    } finally {
+      ui.visibilityToggle.disabled = false;
+    }
+  });
 
   /* ---------------------------------------------------------------- 工具 */
 
@@ -384,17 +406,17 @@
   // 扩展本身不发送任何东西：这里只是生成链接，用户在反馈页上自己决定是否提交
   function updateFeedbackLink() {
     const query = new URLSearchParams({
-      app: 'ghwho',
+      template: 'bug_report.yml',
       version: api.runtime.getManifest().version,
       browser: browserName,
-      lang: i18n.getLang() === 'en' ? 'en' : 'zh',
     });
-    ui.feedbackIssue.href = `${FEEDBACK_URL}?${query}`;
+    ui.feedbackIssue.href = `${PROJECT_URL}/issues/new?${query}`;
   }
 
   async function setupFeedback() {
     ui.version.textContent = `v${api.runtime.getManifest().version}`;
-    ui.feedbackRate.href = isFirefox ? STORE_URLS.firefox : STORE_URLS.edge;
+    ui.projectHome.href = PROJECT_URL;
+    ui.releaseDownload.href = `${PROJECT_URL}/releases/latest`;
     browserName = await browserLabel();
     updateFeedbackLink();
   }
@@ -406,7 +428,7 @@
     document.documentElement.lang = i18n.getLang();
     ui.lang.value = i18n.getPreference();
     i18n.translateDom();
-    ui.feedbackRate.title = t(isFirefox ? 'feedback.rateTitleFirefox' : 'feedback.rateTitleEdge');
+    renderVisibility();
     updateFeedbackLink();
     // 正在编辑时不重绘列表，避免丢掉未保存的输入
     if (!editing) render();
@@ -432,6 +454,12 @@
 
   (async () => {
     await i18n.init();
+    try {
+      notesVisible = await store.getVisibility();
+      ui.visibilityToggle.disabled = false;
+    } catch (err) {
+      flash(err?.message ?? String(err), 'error');
+    }
     applyLanguage();
     setupFeedback();
     checkPermission();

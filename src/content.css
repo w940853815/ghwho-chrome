@@ -4,6 +4,10 @@
  * 第二个值是旧版变量名，最后是兜底色。
  */
 
+.ghwho-hidden :is(.ghwho-badge, .ghwho-profile, .ghwho-popover, .ghwho-preview) {
+  display: none !important;
+}
+
 .ghwho-badge {
   all: unset;
   box-sizing: border-box;

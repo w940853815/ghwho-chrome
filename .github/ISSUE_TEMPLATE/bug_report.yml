@@ -14,14 +14,14 @@ body:
     attributes:
       label: 扩展版本 / Extension version
       description: 从扩展面板底部的「反馈问题」进入时会自动填写 / Filled in automatically when opened from the panel
-      placeholder: "1.0.1"
+      placeholder: "1.0.4"
     validations:
       required: true
   - type: input
     id: browser
     attributes:
       label: 浏览器及版本 / Browser and version
-      placeholder: "Edge 141 / Firefox 143"
+      placeholder: "Chrome 157 / Edge 157 / Firefox 145"
     validations:
       required: true
   - type: input

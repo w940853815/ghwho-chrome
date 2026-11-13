@@ -1,11 +1,5 @@
 blank_issues_enabled: true
 contact_links:
-  - name: 私下反馈 / Private feedback
-    url: https://feedback.netcache24.site/?app=ghwho
-    about: 不想公开提交？内容只发送给开发者 / Prefer not to post publicly? This goes to the developer only
-  - name: 在 Edge 加载项商店评分 / Rate on Microsoft Edge Add-ons
-    url: https://microsoftedge.microsoft.com/addons/detail/ghwho-github-%E7%94%A8%E6%88%B7%E5%A4%87%E6%B3%A8/jepafcbloaophnopbognfebnepklfoea
-    about: 喜欢的话欢迎留下评分和评论 / If you like it, a rating or review helps a lot
-  - name: 在 Firefox 附加组件商店评分 / Rate on Firefox Add-ons
-    url: https://addons.mozilla.org/addon/ghwho-github-%E7%94%A8%E6%88%B7%E5%A4%87%E6%B3%A8/
-    about: 喜欢的话欢迎留下评分和评论 / If you like it, a rating or review helps a lot
+  - name: 下载更新 / Download releases
+    url: https://github.com/w940853815/ghwho-chrome/releases/latest
+    about: 获取 Chrome、Edge 和 Firefox 安装包 / Get Chrome, Edge and Firefox packages

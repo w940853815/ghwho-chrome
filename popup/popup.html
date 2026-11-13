@@ -11,6 +11,7 @@
   <header class="top">
     <img class="logo" src="../icons/icon-32.png" width="20" height="20" alt="">
     <h1 data-i18n="app.title">GitHub 用户备注</h1>
+    <button id="visibility-toggle" class="btn" type="button" disabled data-i18n="visibility.hide" data-i18n-title="visibility.title">隐藏备注</button>
     <select id="lang" class="lang-select" data-i18n-title="lang.title" data-i18n-aria-label="lang.title">
       <option value="auto" data-i18n="lang.auto">自动</option>
       <option value="zh-CN">中文</option>
@@ -64,9 +65,11 @@
     </div>
     <div class="links">
       <span id="version" class="version"></span>
+      <a id="project-home" target="_blank" rel="noopener noreferrer" data-i18n="feedback.project" title="w940853815/ghwho-chrome"></a>
+      <span class="sep" aria-hidden="true">·</span>
       <a id="feedback-issue" target="_blank" rel="noopener noreferrer" data-i18n="feedback.issue" data-i18n-title="feedback.issueTitle"></a>
       <span class="sep" aria-hidden="true">·</span>
-      <a id="feedback-rate" target="_blank" rel="noopener noreferrer" data-i18n="feedback.rate"></a>
+      <a id="release-download" target="_blank" rel="noopener noreferrer" data-i18n="feedback.releases"></a>
     </div>
   </footer>
 

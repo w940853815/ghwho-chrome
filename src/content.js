@@ -27,6 +27,7 @@
 
   /** @type {Record<string, {note: string, updatedAt: number}>} */
   let notes = {};
+  let notesVisible = false;
   /** link / 主页容器 -> { sig, user, badge } */
   const state = new WeakMap();
 
@@ -454,7 +455,7 @@
   }
 
   function schedulePreview(badge, { immediate = false } = {}) {
-    if (editor || restoringEditorFocus || !badge.isConnected || badge.hidden || !notes[badge.dataset.ghwhoFor] || !isAlive()) return;
+    if (!notesVisible || editor || restoringEditorFocus || !badge.isConnected || badge.hidden || !notes[badge.dataset.ghwhoFor] || !isAlive()) return;
     cancelPreviewClose();
     if (immediate) previewByFocus = true;
     if (previewAnchor === badge && (preview || !immediate)) return;
@@ -636,6 +637,7 @@
   }
 
   function openEditor(user, anchor) {
+    if (!notesVisible) return;
     closePreview();
     if (editor?.user === user && editor.anchor === anchor) return closeEditor();
     closeEditor();
@@ -751,9 +753,19 @@
 
   /* ---------------------------------------------------------------- 启动 */
 
+  function applyVisibility(visible) {
+    notesVisible = visible;
+    document.documentElement.classList.toggle('ghwho-hidden', !visible);
+    if (!visible) closePreview();
+  }
+
+  store.onVisibilityChanged(applyVisibility);
+
   async function start() {
+    applyVisibility(false);
     await i18n.init();
     try {
+      applyVisibility(await store.getVisibility());
       notes = await store.getAll();
     } catch (err) {
       console.warn('[ghwho] 读取备注失败', err);

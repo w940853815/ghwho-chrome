@@ -1,0 +1,63 @@
+name: Release browser extensions
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: extension-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Check syntax and run tests
+        run: |
+          for file in src/*.js popup/*.js scripts/*.mjs tests/*.mjs; do node --check "$file"; done
+          node --test
+      - name: Set release version
+        id: version
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync, writeFileSync, appendFileSync } from 'node:fs';
+          import assert from 'node:assert/strict';
+          const manifest = JSON.parse(readFileSync('manifest.json', 'utf8'));
+          const parts = manifest.version.split('.').map(Number);
+          parts[2] += Number(process.env.GITHUB_RUN_NUMBER) - 1;
+          assert(parts.length === 3 && parts.every(n => Number.isInteger(n) && n >= 0 && n <= 65535));
+          manifest.version = parts.join('.');
+          writeFileSync('manifest.json', JSON.stringify(manifest, null, 2) + '\n');
+          appendFileSync(process.env.GITHUB_OUTPUT, `version=${manifest.version}\n`);
+          JS
+      - name: Build packages
+        run: |
+          node scripts/pack.mjs
+          python3 tests/check-packages.py
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          tag="v${RELEASE_VERSION}"
+          if draft=$(gh release view "$tag" --json isDraft --jq '.isDraft'); then
+            if [ "$draft" = false ]; then
+              echo "Release $tag is already published."
+              exit 0
+            fi
+          else
+            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "ghwho $tag" --generate-notes --notes-file .github/RELEASE_NOTES.md
+          fi
+          gh release upload "$tag" dist/*.zip --clobber
+          gh release edit "$tag" --draft=false --latest

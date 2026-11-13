@@ -51,6 +51,9 @@
       'err.unknown': '保存失败：{msg}',
       'err.badFormat': '无法识别的 JSON 格式。',
 
+      'visibility.hide': '隐藏备注',
+      'visibility.show': '显示备注',
+      'visibility.title': '切换所有 GitHub 页面上的备注显示，保留已保存的备注',
       'popup.openTab': '在标签页中打开',
       'perm.title': '尚未授权访问 github.com',
       'perm.desc': '扩展需要该权限才能在 GitHub 页面上显示备注。',
@@ -93,10 +96,9 @@
       'io.importHint': '请点击“导入 JSON”选择备份文件。',
 
       'feedback.issue': '反馈问题',
-      'feedback.issueTitle': '提交问题或建议。内容私下发送给开发者，不需要能访问 GitHub。',
-      'feedback.rate': '去商店评分',
-      'feedback.rateTitleEdge': '在 Microsoft Edge 加载项商店评分和留言',
-      'feedback.rateTitleFirefox': '在 Firefox 附加组件商店评分和留言',
+      'feedback.issueTitle': '在本项目的 GitHub Issues 公开反馈，请勿包含私人备注',
+      'feedback.project': '项目主页',
+      'feedback.releases': '下载更新',
     },
 
     en: {
@@ -136,6 +138,9 @@
       'err.unknown': 'Save failed: {msg}',
       'err.badFormat': 'Unrecognized JSON format.',
 
+      'visibility.hide': 'Hide notes',
+      'visibility.show': 'Show notes',
+      'visibility.title': 'Toggle notes on all GitHub pages without deleting saved notes',
       'popup.openTab': 'Open in a tab',
       'perm.title': 'No access to github.com yet',
       'perm.desc': 'The extension needs this permission to show notes on GitHub pages.',
@@ -178,10 +183,9 @@
       'io.importHint': 'Click “Import JSON” to choose a backup file.',
 
       'feedback.issue': 'Report an issue',
-      'feedback.issueTitle': 'Report a bug or suggest a feature. It is sent privately to the developer; no GitHub access needed.',
-      'feedback.rate': 'Rate in store',
-      'feedback.rateTitleEdge': 'Rate and review on Microsoft Edge Add-ons',
-      'feedback.rateTitleFirefox': 'Rate and review on Firefox Add-ons',
+      'feedback.issueTitle': 'Report publicly in this project’s GitHub Issues. Do not include private notes.',
+      'feedback.project': 'Project',
+      'feedback.releases': 'Releases',
     },
   };
 

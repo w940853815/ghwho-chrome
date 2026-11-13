@@ -3,6 +3,7 @@
  * 打包脚本（无第三方依赖）：node scripts/pack.mjs
  *
  * 生成：
+ *   dist/ghwho-chrome-<version>.zip   —— Chrome / Brave / Vivaldi / Arc
  *   dist/ghwho-edge-<version>.zip     —— 去掉 browser_specific_settings，避免 Edge 报“无法识别的清单键”警告
  *   dist/ghwho-firefox-<version>.zip  —— 原样 manifest
  *
@@ -15,7 +16,7 @@ import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const INCLUDE = ['manifest.json', '_locales', 'src', 'popup', 'icons'];
+const INCLUDE = ['manifest.json', '_locales', 'src', 'popup', 'icons', 'LICENSE', 'README.md', 'README.en.md'];
 const IGNORE = /(^|\/)(\.DS_Store|Thumbs\.db|desktop\.ini)$/i;
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
@@ -116,8 +117,11 @@ function build(target, transformManifest) {
   console.log(`✔ ${relative(ROOT, out)}  (${entries.length} files)`);
 }
 
-build('edge', (m) => {
-  delete m.browser_specific_settings;
-  return m;
-});
+for (const target of ['chrome', 'edge']) {
+  build(target, (m) => {
+    delete m.browser_specific_settings;
+    m.minimum_chrome_version = '109';
+    return m;
+  });
+}
 build('firefox', (m) => m);
