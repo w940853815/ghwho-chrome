@@ -9,8 +9,9 @@ Private notes beside GitHub usernames. Maintained by [w940853815](https://github
 - Notes beside usernames on profiles, issues, pull requests, comments and member lists, once per user within each record.
 - Compact blue labels with truncated long notes. Click to edit or hover to preview the full text and HTTP/HTTPS links.
 - No annotations in status summaries, timeline actions (approvals, merges or branch deletion), body mentions, avatar-only links or hovercards. Comment authors and sidebar users keep their notes. Add notes from a user profile or the extension manager.
-- **Hide notes / Show notes** in the extension panel updates all open GitHub pages immediately. It also hides add-note controls and persists across reloads without deleting notes. The manager remains available.
-- **Show exact timestamps** replaces relative GitHub times with `YYYY-MM-DD HH:mm:ss` in your computer's local time zone. Off by default, the preference persists and updates open GitHub tabs. Turning it off restores the original format; it works independently of note visibility.
+- The **Show notes** switch in the extension panel updates all open GitHub pages immediately. It also hides add-note controls and persists across reloads without deleting notes. The manager remains available.
+- Notes take priority in the manager. Select **Edit** to change or delete a note, and expand **Import & export** for data tools.
+- **Exact time** replaces relative GitHub times with `YYYY-MM-DD HH:mm:ss` in your computer's local time zone. Off by default, the preference persists and updates open GitHub tabs. Turning it off restores the original format; it works independently of note visibility.
 - Search, add, edit, delete and import/export JSON backups.
 - Chinese and English, with light and dark themes.
 

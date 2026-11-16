@@ -26,6 +26,8 @@
     empty: $('empty'),
     meterBar: $('meter-bar'),
     usageText: $('usage-text'),
+    noteCount: $('note-count'),
+    dataTools: $('data-tools'),
     exportBtn: $('export'),
     importBtn: $('import'),
     importMode: $('import-mode'),
@@ -66,7 +68,7 @@
   });
 
   function renderVisibility() {
-    ui.visibilityToggle.textContent = t(notesVisible ? 'visibility.hide' : 'visibility.show');
+    ui.visibilityToggle.checked = notesVisible;
   }
 
   store.onVisibilityChanged((visible) => {
@@ -74,16 +76,17 @@
     renderVisibility();
   });
 
-  ui.visibilityToggle.addEventListener('click', async () => {
+  ui.visibilityToggle.addEventListener('change', async () => {
     ui.visibilityToggle.disabled = true;
     try {
-      const next = !notesVisible;
+      const next = ui.visibilityToggle.checked;
       await store.setVisibility(next);
       notesVisible = next;
       renderVisibility();
     } catch (err) {
       flash(err?.message ?? String(err), 'error');
     } finally {
+      renderVisibility();
       ui.visibilityToggle.disabled = false;
     }
   });
@@ -189,13 +192,15 @@
 
   function renderItem(user, entry) {
     const li = el('li', { class: 'item' });
-    const head = el('div', { class: 'item-head' }, [
-      el('a', { class: 'item-user', href: `https://github.com/${user}`, target: '_blank', rel: 'noopener noreferrer', text: `@${user}` }),
-      el('span', { class: 'item-time', text: formatTime(entry.updatedAt) }),
+    const timestamp = formatTime(entry.updatedAt);
+    const meta = el('div', { class: 'item-meta' }, [
+      el('a', { class: 'item-user', href: `https://github.com/${user}`, target: '_blank', rel: 'noopener noreferrer', text: `@${user}`, title: `@${user}` }),
+      el('span', { class: 'item-time', text: timestamp.slice(5, 10), title: timestamp, 'aria-label': timestamp }),
     ]);
 
     if (editing === user) {
-      const textarea = el('textarea', { class: 'input', rows: '3', maxlength: String(store.MAX_NOTE_LENGTH) });
+      li.classList.add('is-editing');
+      const textarea = el('textarea', { class: 'input', rows: '3', maxlength: String(store.MAX_NOTE_LENGTH), 'aria-label': t('editor.textareaAria', { user }) });
       textarea.value = entry.note;
       const save = async () => {
         try {
@@ -214,10 +219,21 @@
           render();
         }
       });
+      const delBtn = el('button', { class: 'link-btn danger', type: 'button', text: t('common.delete') });
+      delBtn.addEventListener('click', async () => {
+        try {
+          await store.remove(user);
+          editing = null;
+          await reload();
+        } catch (err) {
+          flash(err.message, 'error');
+        }
+      });
       li.append(
-        head,
+        meta,
         textarea,
         el('div', { class: 'row-actions' }, [
+          delBtn,
           el('button', { class: 'btn', type: 'button', text: t('common.cancel'), onclick: () => { editing = null; render(); } }),
           el('button', { class: 'btn btn-primary', type: 'button', text: t('common.save'), onclick: save }),
         ]),
@@ -229,22 +245,11 @@
       return li;
     }
 
-    const delBtn = el('button', { class: 'link-btn danger', type: 'button', text: t('common.delete') });
-    delBtn.addEventListener('click', async () => {
-      try {
-        await store.remove(user);
-        await reload();
-      } catch (err) {
-        flash(err.message, 'error');
-      }
-    });
-
     li.append(
-      head,
-      el('p', { class: 'item-note', text: entry.note, title: t('list.dblclick'), ondblclick: () => startEdit(user) }),
-      el('div', { class: 'item-actions' }, [
+      el('p', { class: 'item-note', text: entry.note, title: entry.note, ondblclick: () => startEdit(user) }),
+      el('div', { class: 'item-bottom' }, [
+        meta,
         el('button', { class: 'link-btn', type: 'button', text: t('common.edit'), onclick: () => startEdit(user) }),
-        delBtn,
       ]),
     );
     return li;
@@ -266,6 +271,7 @@
         used: store.formatKB(u.bytes),
         quota: store.formatKB(u.quota),
       });
+      ui.noteCount.textContent = t('list.count', { count: u.count });
       if (ratio >= 0.8) {
         ui.usageText.title = t('usage.warn');
         ui.usageText.classList.add('warn');
@@ -489,6 +495,7 @@
     checkPermission();
     await reload();
     if (isTab && location.hash === '#import') {
+      ui.dataTools.open = true;
       if (params.get('mode') === 'replace') ui.importMode.value = 'replace';
       flash(t('io.importHint'), 'info', 8000);
       ui.importBtn.focus();

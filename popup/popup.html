@@ -9,21 +9,26 @@
 </head>
 <body>
   <header class="top">
-    <img class="logo" src="../icons/icon-32.png" width="20" height="20" alt="">
+    <img class="logo" src="../icons/icon-32.png" width="24" height="24" alt="">
     <h1 data-i18n="app.title">GitHub 用户备注</h1>
-    <button id="visibility-toggle" class="btn" type="button" disabled data-i18n="visibility.hide" data-i18n-title="visibility.title">隐藏备注</button>
     <select id="lang" class="lang-select" data-i18n-title="lang.title" data-i18n-aria-label="lang.title">
       <option value="auto" data-i18n="lang.auto">自动</option>
       <option value="zh-CN">中文</option>
       <option value="en">English</option>
     </select>
-    <button id="open-tab" class="icon-btn" type="button" data-i18n-title="popup.openTab" data-i18n-aria-label="popup.openTab">⤢</button>
+    <button id="open-tab" class="icon-btn" type="button" data-i18n-title="popup.openTab" data-i18n-aria-label="popup.openTab"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6m0-6-9 9M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/></svg></button>
   </header>
 
-  <label class="time-setting" data-i18n-title="time.title">
-    <span data-i18n="time.exact">显示具体时间</span>
-    <input id="exact-time" type="checkbox" role="switch" disabled>
-  </label>
+  <div class="display-options">
+    <label class="setting" data-i18n-title="visibility.title">
+      <span data-i18n="visibility.label">显示备注</span>
+      <input id="visibility-toggle" type="checkbox" role="switch" disabled>
+    </label>
+    <label class="setting" data-i18n-title="time.title">
+      <span data-i18n="time.label">具体时间</span>
+      <input id="exact-time" type="checkbox" role="switch" disabled>
+    </label>
+  </div>
 
   <section id="perm-banner" class="banner banner-warn" hidden>
     <div>
@@ -36,13 +41,16 @@
   <div id="flash" class="banner" role="status" hidden></div>
 
   <section class="toolbar">
-    <input id="search" class="input" type="search" data-i18n-placeholder="search.placeholder" autocomplete="off" spellcheck="false">
-    <button id="add-toggle" class="btn" type="button" aria-expanded="false" data-i18n="add.toggle"></button>
+    <div class="search-field">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg>
+      <input id="search" class="input" type="search" data-i18n-placeholder="search.placeholder" data-i18n-aria-label="search.placeholder" autocomplete="off" spellcheck="false">
+    </div>
+    <button id="add-toggle" class="btn btn-primary" type="button" aria-expanded="false" aria-controls="add-form" data-i18n="add.toggle"></button>
   </section>
 
   <form id="add-form" class="add-form" hidden>
-    <input id="add-user" class="input" type="text" data-i18n-placeholder="add.userPlaceholder" autocomplete="off" spellcheck="false" required>
-    <textarea id="add-note" class="input" rows="2" data-i18n-placeholder="add.notePlaceholder" required></textarea>
+    <input id="add-user" class="input" type="text" data-i18n-placeholder="add.userPlaceholder" data-i18n-aria-label="add.userPlaceholder" autocomplete="off" spellcheck="false" required>
+    <textarea id="add-note" class="input" rows="2" data-i18n-placeholder="add.notePlaceholder" data-i18n-aria-label="add.notePlaceholder" required></textarea>
     <div class="row-actions">
       <button class="btn" type="button" id="add-cancel" data-i18n="common.cancel"></button>
       <button class="btn btn-primary" type="submit" data-i18n="common.save"></button>
@@ -55,27 +63,32 @@
   </main>
 
   <footer class="bottom">
-    <div class="usage">
-      <div class="meter"><div id="meter-bar" class="meter-bar"></div></div>
-      <span id="usage-text"></span>
-    </div>
-    <div class="io">
-      <button id="export" class="btn" type="button" data-i18n="io.export"></button>
-      <select id="import-mode" class="input select" data-i18n-title="io.mode" data-i18n-aria-label="io.mode">
-        <option value="merge" data-i18n="io.merge"></option>
-        <option value="replace" data-i18n="io.replace"></option>
-      </select>
-      <button id="import" class="btn" type="button" data-i18n="io.import"></button>
-      <input id="import-file" type="file" accept=".json,application/json" hidden>
-    </div>
-    <div class="links">
-      <span id="version" class="version"></span>
-      <a id="project-home" target="_blank" rel="noopener noreferrer" data-i18n="feedback.project" title="w940853815/ghwho-chrome"></a>
-      <span class="sep" aria-hidden="true">·</span>
-      <a id="feedback-issue" target="_blank" rel="noopener noreferrer" data-i18n="feedback.issue" data-i18n-title="feedback.issueTitle"></a>
-      <span class="sep" aria-hidden="true">·</span>
-      <a id="release-download" target="_blank" rel="noopener noreferrer" data-i18n="feedback.releases"></a>
-    </div>
+    <details id="data-tools" class="data-tools">
+      <summary><span id="note-count"></span><span data-i18n="io.manage">导入与导出</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></summary>
+      <div class="data-panel">
+        <div class="usage">
+          <div class="meter"><div id="meter-bar" class="meter-bar"></div></div>
+          <span id="usage-text"></span>
+        </div>
+        <div class="io">
+          <button id="export" class="btn" type="button" data-i18n="io.export"></button>
+          <select id="import-mode" class="input select" data-i18n-title="io.mode" data-i18n-aria-label="io.mode">
+            <option value="merge" data-i18n="io.merge"></option>
+            <option value="replace" data-i18n="io.replace"></option>
+          </select>
+          <button id="import" class="btn" type="button" data-i18n="io.import"></button>
+          <input id="import-file" type="file" accept=".json,application/json" hidden>
+        </div>
+        <div class="links">
+          <span id="version" class="version"></span>
+          <a id="project-home" target="_blank" rel="noopener noreferrer" data-i18n="feedback.project" title="w940853815/ghwho-chrome"></a>
+          <span class="sep" aria-hidden="true">·</span>
+          <a id="feedback-issue" target="_blank" rel="noopener noreferrer" data-i18n="feedback.issue" data-i18n-title="feedback.issueTitle"></a>
+          <span class="sep" aria-hidden="true">·</span>
+          <a id="release-download" target="_blank" rel="noopener noreferrer" data-i18n="feedback.releases"></a>
+        </div>
+      </div>
+    </details>
   </footer>
 
   <script src="../src/i18n.js"></script>
