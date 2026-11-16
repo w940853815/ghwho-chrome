@@ -32,6 +32,7 @@
     importFile: $('import-file'),
     openTab: $('open-tab'),
     visibilityToggle: $('visibility-toggle'),
+    exactTime: $('exact-time'),
     lang: $('lang'),
     version: $('version'),
     feedbackIssue: $('feedback-issue'),
@@ -43,6 +44,26 @@
   let notes = {};
   let editing = null; // 正在编辑的用户名
   let notesVisible = true;
+  let exactTime = false;
+
+  store.onExactTimeChanged((enabled) => {
+    exactTime = enabled;
+    ui.exactTime.checked = enabled;
+  });
+
+  ui.exactTime.addEventListener('change', async () => {
+    ui.exactTime.disabled = true;
+    try {
+      const next = ui.exactTime.checked;
+      await store.setExactTime(next);
+      exactTime = next;
+    } catch (err) {
+      flash(err?.message ?? String(err), 'error');
+    } finally {
+      ui.exactTime.checked = exactTime;
+      ui.exactTime.disabled = false;
+    }
+  });
 
   function renderVisibility() {
     ui.visibilityToggle.textContent = t(notesVisible ? 'visibility.hide' : 'visibility.show');
@@ -457,6 +478,9 @@
     try {
       notesVisible = await store.getVisibility();
       ui.visibilityToggle.disabled = false;
+      exactTime = await store.getExactTime();
+      ui.exactTime.checked = exactTime;
+      ui.exactTime.disabled = false;
     } catch (err) {
       flash(err?.message ?? String(err), 'error');
     }

@@ -14,6 +14,23 @@
   const MAX_ITEMS = 512;
   const MAX_NOTE_LENGTH = 2000;
   const VISIBILITY_KEY = '__ghwho_visible';
+  const EXACT_TIME_KEY = '__ghwho_exact_time';
+
+  async function getExactTime() {
+    return (await api.storage.sync.get(EXACT_TIME_KEY))[EXACT_TIME_KEY] === true;
+  }
+
+  async function setExactTime(enabled) {
+    await api.storage.sync.set({ [EXACT_TIME_KEY]: enabled });
+  }
+
+  function onExactTimeChanged(callback) {
+    const listener = (changes, area) => {
+      if (area === 'sync' && EXACT_TIME_KEY in changes) callback(changes[EXACT_TIME_KEY].newValue === true);
+    };
+    api.storage.onChanged.addListener(listener);
+    return () => api.storage.onChanged.removeListener(listener);
+  }
 
   async function getVisibility() {
     return (await api.storage.sync.get(VISIBILITY_KEY))[VISIBILITY_KEY] !== false;
@@ -293,6 +310,9 @@
     getVisibility,
     setVisibility,
     onVisibilityChanged,
+    getExactTime,
+    setExactTime,
+    onExactTimeChanged,
     NoteError,
     normalizeUsername,
     formatKB,

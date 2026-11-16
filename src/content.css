@@ -8,6 +8,11 @@
   display: none !important;
 }
 
+/* GitHub 的时间链接默认最多 125px，会截断完整日期的秒数。 */
+a.css-truncate-target:has(> relative-time[data-ghwho-exact-time]) {
+  max-width: none;
+}
+
 .ghwho-badge {
   all: unset;
   box-sizing: border-box;

@@ -38,6 +38,28 @@ function loadStore(namespace) {
 }
 
 for (const namespace of ['chrome', 'browser']) {
+  test(`${namespace}: exact timestamps default off, sync independently and survive note imports`, async () => {
+    const { store, api } = loadStore(namespace);
+    assert.equal(await store.getExactTime(), false);
+    const updates = [];
+    const stop = store.onExactTimeChanged(value => updates.push(value));
+    await store.setExactTime(true);
+    await store.setVisibility(false);
+    assert.equal(await store.getExactTime(), true);
+    await store.importData({ octocat: '备注' }, { mode: 'replace' });
+    assert.equal(await store.getExactTime(), true);
+    assert.deepEqual(Object.keys((await store.exportData()).notes), ['octocat']);
+    await api.storage.sync.remove('__ghwho_exact_time');
+    assert.equal(await store.getExactTime(), false);
+    assert.deepEqual(updates, [true, false]);
+    stop();
+    await store.setExactTime(true);
+    assert.deepEqual(updates, [true, false]);
+    api.storage.sync.set = async () => { throw new Error('write failed'); };
+    await assert.rejects(store.setExactTime(false), /write failed/);
+    assert.equal(await store.getExactTime(), true);
+  });
+
   test(`${namespace}: visibility persists, notifies other contexts and preserves notes`, async () => {
     const { store, api } = loadStore(namespace);
     assert.equal(await store.getVisibility(), true);

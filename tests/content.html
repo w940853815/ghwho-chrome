@@ -8,6 +8,7 @@
   body { margin: 24px; font: 14px/1.5 system-ui; color: #1f2328; background: white; }
   article, li { padding: 12px; border-bottom: 1px solid #d1d9e0; }
   a { color: #0969da; }
+  .css-truncate-target { display: inline-block; max-width: 125px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>
 <body>
 <div class="vcard-names"><span class="p-nickname">new-user</span></div>
@@ -32,9 +33,12 @@
 <header class="AppHeader"><a href="https://github.com/octocat">octocat</a></header>
 <div id="avatars"><a href="https://github.com/octocat"><img class="avatar" src="../icons/icon-32.png" alt="@octocat"></a></div>
 <pre id="result">Running…</pre>
+<a id="time-link" class="css-truncate-target" href="#comment"><relative-time id="time" datetime="2026-11-16T06:07:14Z" lang="en" hour-cycle="h12">27 minutes ago</relative-time></a>
+<relative-time id="invalid-time" datetime="invalid">unknown</relative-time>
+<relative-time id="duration" datetime="2026-11-16T06:07:14Z" format="duration">27m</relative-time>
 <script>
   const data = { octocat: { note: '示例用户\n' + '用于检查长备注截断与完整预览。'.repeat(12), updatedAt: 1 } };
-  let change, visibility;
+  let change, visibility, timePreference;
   globalThis.chrome = { runtime: { id: 'content-test' } };
   globalThis.GHWho = {
     i18n: { t: key => key, init: async () => {}, onChange() {}, getLang: () => 'zh-CN' },
@@ -43,6 +47,7 @@
       MAX_NOTE_LENGTH: 2000,
       getAll: async () => structuredClone(data), getVisibility: async () => true,
       onChanged: fn => { change = fn; }, onVisibilityChanged: fn => { visibility = fn; },
+      getExactTime: async () => false, onExactTimeChanged: fn => { timePreference = fn; },
       async set(user, note) { data[user] = { note, updatedAt: 1 }; change({ [user]: data[user] }); return data[user]; },
       async remove(user) { delete data[user]; change({ [user]: null }); },
     },
@@ -55,6 +60,42 @@
   const visible = selector => [...document.querySelectorAll(selector)].filter(el => el.getClientRects().length);
   const assert = (condition, message) => { if (!condition) throw new Error(message); };
   (async () => {
+    await settle();
+    const time = document.querySelector('#time');
+    const originalTime = JSON.stringify([...time.attributes].map(a => [a.name, a.value]).sort());
+    assert(!time.hasAttribute('format'), 'exact time defaults off');
+    timePreference(true);
+    await settle();
+    assert(time.getAttribute('format') === 'datetime' && time.getAttribute('second') === '2-digit' && time.getAttribute('hour-cycle') === 'h23', 'enable complete timestamps to the second');
+    assert(time.parentElement.id === 'time-link' && time.getAttribute('datetime') === '2026-11-16T06:07:14Z', 'preserve timestamp source and link');
+    assert(getComputedStyle(time.parentElement).maxWidth === 'none', 'complete timestamp links are not truncated');
+    assert(!document.querySelector('#invalid-time').hasAttribute('format') && document.querySelector('#duration').getAttribute('format') === 'duration', 'skip invalid dates and durations');
+    visibility(false);
+    assert(time.getAttribute('format') === 'datetime', 'time display is independent of note visibility');
+    visibility(true);
+    const dynamicTime = document.createElement('relative-time');
+    dynamicTime.setAttribute('datetime', '2026-03-08T07:00:01Z');
+    document.querySelector('#deleted').append(dynamicTime);
+    await settle();
+    assert(dynamicTime.getAttribute('second') === '2-digit', 'dynamic timestamps in ignored note areas still update');
+    dynamicTime.setAttribute('prefix', 'at');
+    await settle();
+    assert(dynamicTime.getAttribute('prefix') === '', 'GitHub attribute updates keep exact formatting');
+    timePreference(false);
+    await settle();
+    assert(JSON.stringify([...time.attributes].map(a => [a.name, a.value]).sort()) === originalTime, 'disable restores original formatting attributes');
+    assert(getComputedStyle(time.parentElement).maxWidth === '125px', 'disable restores original link layout');
+    assert(dynamicTime.getAttribute('prefix') === 'at', 'restore newer page formatting preferences');
+    timePreference(true);
+    dynamicTime.removeAttribute('datetime');
+    await settle();
+    assert(!dynamicTime.hasAttribute('format'), 'restore when timestamp source is removed');
+    document.dispatchEvent(new Event('turbo:before-cache'));
+    assert(!time.hasAttribute('format'), 'Turbo snapshots retain original time preferences');
+    document.dispatchEvent(new Event('turbo:load'));
+    await settle();
+    assert(time.getAttribute('format') === 'datetime', 'Turbo navigation reapplies preference');
+    timePreference(false);
     await settle();
     assert(visible('#first .ghwho-badge').length === 1, 'deduplicate within one comment');
     assert(visible('#second .ghwho-badge').length === 1, 'keep author on separate comments');

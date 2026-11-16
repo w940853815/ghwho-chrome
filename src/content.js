@@ -30,6 +30,58 @@
   /** link / 主页容器 -> { sig, user, badge } */
   const state = new WeakMap();
 
+  const TIME_QUERY = 'relative-time[datetime]';
+  // 使用 GitHub 组件自身的格式化能力，保留自动更新、链接与无障碍语义。
+  // sv-SE 固定数字年月日顺序，时区仍取本机。
+  const TIME_FORMAT = {
+    'data-ghwho-exact-time': '',
+    format: 'datetime', lang: 'sv-SE', prefix: '', weekday: '',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    'hour-cycle': 'h23', 'time-zone-name': '',
+    'time-zone': Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
+  let exactTime = false;
+  const originalTimes = new Map();
+
+  function restoreTime(element) {
+    const original = originalTimes.get(element);
+    if (!original) return;
+    originalTimes.delete(element);
+    for (const [name, value] of Object.entries(original)) {
+      if (value === null) element.removeAttribute(name);
+      else element.setAttribute(name, value);
+    }
+  }
+
+  function processTime(element) {
+    const format = originalTimes.get(element)?.format ?? element.getAttribute('format');
+    if (!Number.isFinite(Date.parse(element.getAttribute('datetime'))) || format === 'duration' || format === 'elapsed') {
+      restoreTime(element);
+      return;
+    }
+    if (!originalTimes.has(element)) {
+      originalTimes.set(element, Object.fromEntries(Object.keys(TIME_FORMAT).map(name => [name, element.getAttribute(name)])));
+    }
+    for (const [name, value] of Object.entries(TIME_FORMAT)) {
+      if (element.getAttribute(name) !== value) element.setAttribute(name, value);
+    }
+  }
+
+  function syncTimes(root) {
+    for (const element of originalTimes.keys()) {
+      if (!exactTime || !element.isConnected || !element.matches(TIME_QUERY)) restoreTime(element);
+    }
+    if (!exactTime) return;
+    if (root.nodeType === 1 && root.matches(TIME_QUERY)) processTime(root);
+    for (const element of root.querySelectorAll(TIME_QUERY)) processTime(element);
+  }
+
+  store.onExactTimeChanged((enabled) => {
+    exactTime = enabled;
+    syncTimes(document);
+  });
+
   /* ---------------------------------------------------------------- 用户名识别 */
 
   function usernameFromHref(href, { strict }) {
@@ -246,6 +298,7 @@
   function scan(root) {
     if (!root || (root.nodeType !== 1 && root.nodeType !== 9)) return;
     if (root.nodeType === 1 && root.closest(OWN_QUERY)) return;
+    syncTimes(root);
 
     for (const container of document.querySelectorAll(S.profile.container)) processProfile(container);
 
@@ -260,6 +313,7 @@
     closePreview();
     previewElements = null;
     closeEditor();
+    for (const element of originalTimes.keys()) restoreTime(element);
     clearTimeout(flushTimer);
     flushTimer = 0;
     pending.clear();
@@ -302,6 +356,11 @@
     for (const rec of records) {
       if (isOwnNode(rec.target)) continue;
       if (rec.type === 'attributes') {
+        const original = originalTimes.get(rec.target);
+        if (original && rec.attributeName in TIME_FORMAT) {
+          const value = rec.target.getAttribute(rec.attributeName);
+          if (value !== TIME_FORMAT[rec.attributeName]) original[rec.attributeName] = value;
+        }
         const badge = state.get(rec.target)?.badge;
         if (badge && previewAnchor && (badge === previewAnchor || badge.contains(previewAnchor))) closePreview();
         queue(rec.target);
@@ -751,6 +810,7 @@
     await i18n.init();
     try {
       applyVisibility(await store.getVisibility());
+      exactTime = await store.getExactTime();
       notes = await store.getAll();
     } catch (err) {
       console.warn('[ghwho] 读取备注失败', err);
@@ -761,7 +821,7 @@
       characterData: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['href', 'data-hovercard-url', 'data-hovercard-type'],
+      attributeFilter: ['href', 'data-hovercard-url', 'data-hovercard-type', 'datetime', ...Object.keys(TIME_FORMAT)],
     });
 
     // Turbo 驱动的页面切换
