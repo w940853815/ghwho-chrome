@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content regression checks</title>
+<link rel="stylesheet" href="../src/content.css">
+<style>
+  body { margin: 24px; font: 14px/1.5 system-ui; color: #1f2328; background: white; }
+  article, li { padding: 12px; border-bottom: 1px solid #d1d9e0; }
+  a { color: #0969da; }
+</style>
+<body>
+<div class="vcard-names"><span class="p-nickname">new-user</span></div>
+<article class="timeline-comment" id="first">
+  <a href="https://github.com/octocat"><img class="avatar" src="../icons/icon-32.png" alt="" width="24" height="24"></a>
+  <span id="author"><a href="https://github.com/octocat">octocat</a></span>
+  <span id="repeat"><a href="https://github.com/octocat">octocat</a></span>
+  <p class="markdown-body">请参考 <a href="https://github.com/octocat">@octocat</a> 的说明。</p>
+</article>
+<article class="timeline-comment" id="second"><a href="https://github.com/octocat">octocat</a></article>
+<ul><li id="member"><a href="https://github.com/other-user">other-user</a></li></ul>
+<div class="Popover"><a href="https://github.com/octocat">octocat</a></div>
+<header class="AppHeader"><a href="https://github.com/octocat">octocat</a></header>
+<div id="avatars"><a href="https://github.com/octocat"><img class="avatar" src="../icons/icon-32.png" alt="@octocat"></a></div>
+<pre id="result">Running…</pre>
+<script>
+  const data = { octocat: { note: '示例用户\n' + '用于检查长备注截断与完整预览。'.repeat(12), updatedAt: 1 } };
+  let change, visibility;
+  globalThis.chrome = { runtime: { id: 'content-test' } };
+  globalThis.GHWho = {
+    i18n: { t: key => key, init: async () => {}, onChange() {}, getLang: () => 'zh-CN' },
+    storage: {
+      normalizeUsername: user => /^[a-z0-9-]+$/i.test(user) ? user.toLowerCase() : null,
+      MAX_NOTE_LENGTH: 2000,
+      getAll: async () => structuredClone(data), getVisibility: async () => true,
+      onChanged: fn => { change = fn; }, onVisibilityChanged: fn => { visibility = fn; },
+      async set(user, note) { data[user] = { note, updatedAt: 1 }; change({ [user]: data[user] }); return data[user]; },
+      async remove(user) { delete data[user]; change({ [user]: null }); },
+    },
+  };
+</script>
+<script src="../src/selectors.js"></script>
+<script src="../src/content.js"></script>
+<script>
+  const settle = () => new Promise(resolve => setTimeout(resolve, 250));
+  const visible = selector => [...document.querySelectorAll(selector)].filter(el => el.getClientRects().length);
+  const assert = (condition, message) => { if (!condition) throw new Error(message); };
+  (async () => {
+    await settle();
+    assert(visible('#first .ghwho-badge').length === 1, 'deduplicate within one comment');
+    assert(visible('#second .ghwho-badge').length === 1, 'keep author on separate comments');
+    assert(!document.querySelector('.markdown-body .ghwho-badge, .Popover .ghwho-badge, .AppHeader .ghwho-badge, #avatars .ghwho-badge'), 'skip body, hovercards, navigation and avatars');
+    assert(visible('#member .ghwho-badge').length === 0, 'no inline add button');
+    assert(visible('.ghwho-profile .ghwho-add').length === 1, 'profile add remains available');
+    const badge = document.querySelector('#author .ghwho-badge');
+    assert(badge.textContent === '（' + data.octocat.note.replace(/\s+/g, ' ') + '）', 'compact parentheses without icon');
+    assert(getComputedStyle(badge).backgroundColor === 'rgba(0, 0, 0, 0)', 'no colored label');
+    const text = badge.querySelector('.ghwho-text');
+    assert(text.scrollWidth > text.clientWidth, 'long text truncates');
+    badge.focus();
+    assert(document.querySelector('.ghwho-preview-body')?.textContent === data.octocat.note, 'keyboard preview shows full text');
+    visibility(false);
+    assert(!visible('.ghwho-badge').length && !document.querySelector('.ghwho-preview'), 'hide notes and preview');
+    visibility(true);
+    badge.click();
+    assert(document.querySelector('.ghwho-textarea')?.value === data.octocat.note, 'click opens editor');
+    document.querySelector('.ghwho-textarea').value = '更新后的备注';
+    document.querySelector('.ghwho-btn-primary').click();
+    await settle();
+    assert(data.octocat.note === '更新后的备注' && visible('#first .ghwho-badge').length === 1, 'save updates without duplicates');
+    document.querySelector('#author').remove();
+    await settle();
+    assert(visible('#repeat .ghwho-badge').length === 1, 'next duplicate becomes visible after first owner is removed');
+    const moved = document.querySelector('#repeat');
+    document.querySelector('.markdown-body').append(moved);
+    await settle();
+    assert(!document.querySelector('#repeat .ghwho-badge'), 'moving a link into body removes its annotation');
+    await GHWho.storage.set('other-user', '新增成员');
+    assert(visible('#member .ghwho-badge').length === 1, 'new stored note appears on existing link');
+    await GHWho.storage.remove('other-user');
+    assert(!visible('#member .ghwho-badge').length, 'deleting note does not expose add button');
+    document.querySelector('#second a').firstChild.textContent = '';
+    await settle();
+    assert(!document.querySelector('#second .ghwho-badge'), 'text changes recheck eligibility');
+    const member = document.querySelector('#member');
+    member.innerHTML = '<a href="https://github.com/octocat">octocat</a>';
+    await settle();
+    assert(visible('#member .ghwho-badge').length === 1, 'dynamic member row is annotated');
+    document.dispatchEvent(new Event('turbo:before-cache'));
+    document.dispatchEvent(new Event('turbo:load'));
+    await settle();
+    assert(visible('#member .ghwho-badge').length === 1, 'Turbo rebuild has no duplicates');
+    document.querySelector('#result').textContent = 'PASS';
+    document.documentElement.dataset.result = 'pass';
+  })().catch(error => {
+    document.querySelector('#result').textContent = error.stack;
+    document.documentElement.dataset.result = 'fail';
+  });
+</script>
+</body>
+</html>

@@ -25,7 +25,6 @@
       'common.edit': '编辑',
       'common.listSep': '，',
 
-      'badge.addInline': '+备注',
       'badge.addProfile': '+ 添加备注',
       'badge.noteAria': '@{user} 的备注：{note}。点击编辑',
       'badge.addTitle': '为 @{user} 添加备注',
@@ -112,7 +111,6 @@
       'common.edit': 'Edit',
       'common.listSep': ', ',
 
-      'badge.addInline': '+ Note',
       'badge.addProfile': '+ Add note',
       'badge.noteAria': 'Note on @{user}: {note}. Click to edit',
       'badge.addTitle': 'Add a note for @{user}',

@@ -6,8 +6,9 @@ Private notes beside GitHub usernames. Maintained by [w940853815](https://github
 
 ## Features
 
-- Notes on profiles, issues, pull requests, comments, member lists and participant avatars.
-- Click to edit; hover to preview long notes and HTTP/HTTPS links.
+- Notes beside usernames on profiles, issues, pull requests, comments and member lists, once per user within each record.
+- Compact inline notes in parentheses; long notes are truncated. Click to edit or hover to preview the full text and HTTP/HTTPS links.
+- No annotations in body mentions, avatar-only links or hovercards. Add notes from a user profile or the extension manager.
 - **Hide notes / Show notes** in the extension panel updates all open GitHub pages immediately. It also hides add-note controls and persists across reloads without deleting notes. The manager remains available.
 - Search, add, edit, delete and import/export JSON backups.
 - Chinese and English, with light and dark themes.
@@ -54,6 +55,8 @@ node --test
 node scripts/pack.mjs
 python3 tests/check-packages.py
 ```
+
+Open `tests/content.html` in a browser. `PASS` confirms the regression checks for deduplication, annotation placement, editing and dynamic updates.
 
 The packer writes Chrome, Edge and Firefox ZIPs to `dist/`, including the license and documentation.
 

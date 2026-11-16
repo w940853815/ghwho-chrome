@@ -17,7 +17,6 @@
   const LINK_QUERY = [...S.userLinks, S.fallbackLinks].join(', ');
   const HOVERCARD_QUERY = S.userLinks.join(', ');
   const IGNORE_QUERY = S.ignoreWithin.join(', ');
-  const NO_ADD_QUERY = S.noAddWithin.join(', ');
   const RESERVED = new Set(S.reservedPaths);
   const MARK_ATTR = 'data-ghwho-user'; // 已处理节点的标记，值为识别出的用户名（非用户链接为空串）
   const OWN_QUERY = '.ghwho-badge, .ghwho-popover, .ghwho-profile, .ghwho-preview';
@@ -59,10 +58,6 @@
     return a.textContent.replace(/\s+/g, ' ').trim();
   }
 
-  function isAvatarOnly(a) {
-    return !linkText(a) && !!a.querySelector(S.avatar);
-  }
-
   /* 返回链接对应的小写用户名；不是用户链接则返回 null */
   function usernameOf(a) {
     const type = a.getAttribute('data-hovercard-type');
@@ -86,21 +81,10 @@
     const user = usernameFromHref(a.getAttribute('href'), { strict: true });
     if (!user) return null;
     const text = linkText(a).replace(/^@/, '').toLowerCase();
-    if (text === user || (!text && a.querySelector(S.avatar))) return user;
+    if (text === user) return user;
     // PR 侧栏等处显示为「昵称 (用户名)」
     if (text.endsWith(`(${user})`)) return user;
     return null;
-  }
-
-  /* 头像链接附近是否已有同一用户的文字链接（有则头像旁不再重复显示） */
-  function hasTextLinkNearby(a, user) {
-    let el = a.parentElement;
-    for (let i = 0; i < S.avatarSiblingDepth && el && el !== document.body; i++, el = el.parentElement) {
-      for (const other of el.querySelectorAll(LINK_QUERY)) {
-        if (other !== a && linkText(other) && usernameOf(other) === user) return true;
-      }
-    }
-    return false;
   }
 
   /* ---------------------------------------------------------------- 标签渲染 */
@@ -144,7 +128,7 @@
     const user = badge.dataset.ghwhoFor;
     const mode = badge.dataset.ghwhoMode;
     const entry = notes[user];
-    const canAdd = mode === 'inline' || mode === 'profile';
+    const canAdd = mode === 'profile';
 
     badge.classList.toggle('ghwho-has-note', !!entry);
     badge.classList.toggle('ghwho-add', !entry);
@@ -152,22 +136,16 @@
     badge.replaceChildren();
 
     if (entry) {
-      const icon = document.createElement('span');
-      icon.className = 'ghwho-icon';
-      icon.setAttribute('aria-hidden', 'true');
-      icon.textContent = '✎';
-      badge.append(icon);
-      if (mode !== 'avatar') {
-        const text = document.createElement('span');
-        text.className = 'ghwho-text';
-        // 行内只显示单行（CSS 截断），主页显示完整多行
-        text.textContent = mode === 'profile' ? entry.note : entry.note.replace(/\s+/g, ' ');
-        badge.append(text);
-      }
+      const text = document.createElement('span');
+      text.className = 'ghwho-text';
+      // 行内只显示单行（CSS 截断），主页显示完整多行
+      text.textContent = mode === 'profile' ? entry.note : entry.note.replace(/\s+/g, ' ');
+      if (mode === 'inline') badge.append('（', text, '）');
+      else badge.append(text);
       badge.removeAttribute('title');
       badge.setAttribute('aria-label', t('badge.noteAria', { user, note: entry.note }));
     } else {
-      badge.textContent = t(mode === 'profile' ? 'badge.addProfile' : 'badge.addInline');
+      badge.textContent = canAdd ? t('badge.addProfile') : '';
       badge.title = t('badge.addTitle', { user });
       badge.setAttribute('aria-label', badge.title);
     }
@@ -176,6 +154,20 @@
   function refreshUser(user) {
     for (const badge of document.querySelectorAll(`.ghwho-badge[data-ghwho-for="${CSS.escape(user)}"]`)) {
       renderBadge(badge);
+    }
+    deduplicate();
+  }
+
+  function deduplicate() {
+    const seen = new Map();
+    for (const badge of document.querySelectorAll('.ghwho-mode-inline')) {
+      const owner = badge.previousElementSibling;
+      const record = owner?.closest(S.record) ?? owner?.parentElement;
+      if (!seen.has(record)) seen.set(record, new Set());
+      const users = seen.get(record);
+      const user = badge.dataset.ghwhoFor;
+      badge.classList.toggle('ghwho-duplicate', users.has(user));
+      if (!badge.hidden) users.add(user);
     }
   }
 
@@ -198,23 +190,16 @@
   function processLink(a) {
     const sig = `${a.getAttribute('href') ?? ''}|${a.getAttribute('data-hovercard-url') ?? ''}|${a.getAttribute('data-hovercard-type') ?? ''}`;
     const prev = state.get(a);
-    if (prev && prev.sig === sig && (!prev.badge || prev.badge.isConnected)) return;
+    let user = null;
+    let mode = null;
+    if (linkText(a) && !a.closest(IGNORE_QUERY)) {
+      user = usernameOf(a);
+      if (user) mode = 'inline';
+    }
+    if (prev && prev.sig === sig && prev.user === user && (!prev.badge || prev.badge.isConnected)) return;
 
     prev?.badge?.remove();
     if (!prev) removeStaleBadge(a);
-
-    let user = null;
-    let mode = null;
-    if (!a.closest(IGNORE_QUERY)) {
-      user = usernameOf(a);
-      if (user) {
-        if (isAvatarOnly(a)) {
-          mode = hasTextLinkNearby(a, user) ? null : 'avatar';
-        } else {
-          mode = a.closest(NO_ADD_QUERY) ? 'passive' : 'inline';
-        }
-      }
-    }
 
     a.setAttribute(MARK_ATTR, mode ? user : '');
     let badge = null;
@@ -268,6 +253,7 @@
     if (root.nodeType === 1 && root.matches('a') && (root.matches(LINK_QUERY) || state.has(root))) processLink(root);
     for (const a of root.querySelectorAll(LINK_QUERY)) processLink(a);
     removeOrphans(root);
+    deduplicate();
   }
 
   /* 清理全部注入内容（Turbo 缓存页面前调用，避免快照里残留标签） */
@@ -338,8 +324,8 @@
         queue(profile);
         continue;
       }
-      let relevant = false;
-      for (const n of rec.addedNodes) {
+      let relevant = rec.type === 'characterData';
+      for (const n of [...rec.addedNodes, ...rec.removedNodes]) {
         if (n.nodeType === 1 && !isOwnNode(n)) {
           relevant = true;
           break;
@@ -354,7 +340,7 @@
           }
         }
       }
-      if (relevant) queue(rec.target);
+      if (relevant) queue(rec.target.nodeType === 1 ? rec.target : rec.target.parentElement);
     }
   });
 

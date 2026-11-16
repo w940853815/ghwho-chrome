@@ -19,14 +19,11 @@
      * URL 规则兜底：没有 hovercard 标记的链接，满足以下全部条件才认定为用户链接：
      *   1. href 形如 /<name> 或 https://github.com/<name>（无子路径、无查询串、无锚点）
      *   2. <name> 不在 reservedPaths 中
-     *   3. 链接文字就是用户名（可带 @）或形如「昵称 (用户名)」，或链接里只有头像
+     *   3. 链接文字就是用户名（可带 @）或形如「昵称 (用户名)」
      * 这样可以覆盖新版 React 页面（如贡献者列表）里没有 hovercard 属性的链接，
      * 同时避免把 "Overview" 之类指向个人主页的标签页链接误判为用户名。
      */
     fallbackLinks: 'a[href^="/"], a[href^="https://github.com/"]',
-
-    /* 头像图片（用于识别“只有头像”的链接） */
-    avatar: 'img.avatar, img[class*="avatar" i], img[alt^="@"], svg[class*="avatar" i]',
 
     /* 这些区域内的链接完全不处理（全局导航、页脚、本扩展自身的 UI 等） */
     ignoreWithin: [
@@ -40,21 +37,15 @@
       '.ghwho-badge',
       '.ghwho-popover',
       '[data-ghwho-ignore]',
-    ],
-
-    /*
-     * 这些区域内只显示已有备注，不显示“+备注”按钮，避免正文里的 @mention、
-     * 悬停卡片等位置太嘈杂。
-     */
-    noAddWithin: [
       '.markdown-body',
       '.comment-body',
       '.Popover',
       '[data-testid="markdown-body"]',
+      '.vcard-names',
     ],
 
-    /* 判断“头像链接旁是否已有同一用户的文字链接”时，最多向上查找的层数 */
-    avatarSiblingDepth: 4,
+    /* 仅在同一条记录内去重，长讨论中不同评论的作者仍各自显示备注。 */
+    record: '.timeline-comment, .js-comment, [data-testid="issue-body"], [data-testid="issue-comment"], [data-testid="comment-viewer-outer-box"], .js-issue-row, [data-testid="list-row"], .Box-row, .table-list-item, [role="row"], tr, li',
 
     /* 用户个人主页 */
     profile: {
