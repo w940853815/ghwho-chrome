@@ -7,8 +7,8 @@ Private notes beside GitHub usernames. Maintained by [w940853815](https://github
 ## Features
 
 - Notes beside usernames on profiles, issues, pull requests, comments and member lists, once per user within each record.
-- Compact inline notes in parentheses; long notes are truncated. Click to edit or hover to preview the full text and HTTP/HTTPS links.
-- No annotations in body mentions, avatar-only links or hovercards. Add notes from a user profile or the extension manager.
+- Compact blue labels with truncated long notes. Click to edit or hover to preview the full text and HTTP/HTTPS links.
+- No annotations in status summaries, timeline actions (approvals, merges or branch deletion), body mentions, avatar-only links or hovercards. Comment authors and sidebar users keep their notes. Add notes from a user profile or the extension manager.
 - **Hide notes / Show notes** in the extension panel updates all open GitHub pages immediately. It also hides add-note controls and persists across reloads without deleting notes. The manager remains available.
 - Search, add, edit, delete and import/export JSON backups.
 - Chinese and English, with light and dark themes.

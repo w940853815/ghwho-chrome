@@ -42,6 +42,11 @@
       '.Popover',
       '[data-testid="markdown-body"]',
       '.vcard-names',
+      // 状态摘要和操作流水不显示备注，流水中的实际评论仍保留作者备注。
+      '.gh-header-meta',
+      '[class*="summaryContainer__"]',
+      '.TimelineItem-body a:not(.timeline-comment a, .review-comment a)',
+      'a[data-testid="actor-link"]',
     ],
 
     /* 仅在同一条记录内去重，长讨论中不同评论的作者仍各自显示备注。 */

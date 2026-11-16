@@ -11,12 +11,21 @@
 </style>
 <body>
 <div class="vcard-names"><span class="p-nickname">new-user</span></div>
+<div class="gh-header-meta" id="legacy-summary"><a href="https://github.com/octocat">octocat</a> merged</div>
+<div class="summaryContainer__fixture" id="summary"><a href="https://github.com/octocat">octocat</a> merged</div>
+<div class="TimelineItem-body" id="approved"><strong><a href="https://github.com/octocat">octocat</a></strong> approved these changes</div>
+<div class="TimelineItem-body" id="merged"><div><a href="https://github.com/octocat">octocat</a> merged</div></div>
+<div class="TimelineItem-body" id="deleted"><div><a href="https://github.com/octocat">octocat</a> deleted a branch</div></div>
+<div id="react-event"><a data-testid="actor-link" href="https://github.com/octocat">octocat</a> added a label</div>
+<div class="TimelineItem-body">
 <article class="timeline-comment" id="first">
   <a href="https://github.com/octocat"><img class="avatar" src="../icons/icon-32.png" alt="" width="24" height="24"></a>
   <span id="author"><a href="https://github.com/octocat">octocat</a></span>
   <span id="repeat"><a href="https://github.com/octocat">octocat</a></span>
   <p class="markdown-body">请参考 <a href="https://github.com/octocat">@octocat</a> 的说明。</p>
 </article>
+</div>
+<div class="TimelineItem-body"><div class="review-comment" id="review-comment"><a href="https://github.com/octocat">octocat</a></div></div>
 <article class="timeline-comment" id="second"><a href="https://github.com/octocat">octocat</a></article>
 <ul><li id="member"><a href="https://github.com/other-user">other-user</a></li></ul>
 <div class="Popover"><a href="https://github.com/octocat">octocat</a></div>
@@ -49,12 +58,14 @@
     await settle();
     assert(visible('#first .ghwho-badge').length === 1, 'deduplicate within one comment');
     assert(visible('#second .ghwho-badge').length === 1, 'keep author on separate comments');
+    assert(!document.querySelector('#legacy-summary .ghwho-badge, #summary .ghwho-badge, #approved .ghwho-badge, #merged .ghwho-badge, #deleted .ghwho-badge, #react-event .ghwho-badge'), 'skip status summaries and timeline actors');
+    assert(visible('#review-comment .ghwho-badge').length === 1, 'keep actual review comment authors within the timeline');
     assert(!document.querySelector('.markdown-body .ghwho-badge, .Popover .ghwho-badge, .AppHeader .ghwho-badge, #avatars .ghwho-badge'), 'skip body, hovercards, navigation and avatars');
     assert(visible('#member .ghwho-badge').length === 0, 'no inline add button');
     assert(visible('.ghwho-profile .ghwho-add').length === 1, 'profile add remains available');
     const badge = document.querySelector('#author .ghwho-badge');
-    assert(badge.textContent === '（' + data.octocat.note.replace(/\s+/g, ' ') + '）', 'compact parentheses without icon');
-    assert(getComputedStyle(badge).backgroundColor === 'rgba(0, 0, 0, 0)', 'no colored label');
+    assert(badge.textContent === data.octocat.note.replace(/\s+/g, ' '), 'label without parentheses or icon');
+    assert(getComputedStyle(badge).backgroundColor !== 'rgba(0, 0, 0, 0)', 'note has a visible background');
     const text = badge.querySelector('.ghwho-text');
     assert(text.scrollWidth > text.clientWidth, 'long text truncates');
     badge.focus();
@@ -86,6 +97,12 @@
     member.innerHTML = '<a href="https://github.com/octocat">octocat</a>';
     await settle();
     assert(visible('#member .ghwho-badge').length === 1, 'dynamic member row is annotated');
+    document.querySelector('#deleted').append(member);
+    await settle();
+    assert(!document.querySelector('#member .ghwho-badge'), 'moving a member link into an event removes its note');
+    document.body.append(member);
+    await settle();
+    assert(visible('#member .ghwho-badge').length === 1, 'moving it back restores its note');
     document.dispatchEvent(new Event('turbo:before-cache'));
     document.dispatchEvent(new Event('turbo:load'));
     await settle();

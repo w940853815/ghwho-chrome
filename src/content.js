@@ -140,8 +140,7 @@
       text.className = 'ghwho-text';
       // 行内只显示单行（CSS 截断），主页显示完整多行
       text.textContent = mode === 'profile' ? entry.note : entry.note.replace(/\s+/g, ' ');
-      if (mode === 'inline') badge.append('（', text, '）');
-      else badge.append(text);
+      badge.append(text);
       badge.removeAttribute('title');
       badge.setAttribute('aria-label', t('badge.noteAria', { user, note: entry.note }));
     } else {
