@@ -60,6 +60,8 @@ python3 tests/check-packages.py
 
 Open `tests/content.html` in a browser. `PASS` confirms the regression checks for deduplication, annotation placement, editing, exact timestamps and dynamic updates.
 
+The optional toolbar-popup regression check requires desktop Chrome and Playwright (`npm install --no-save --package-lock=false playwright`). Run `node tests/popup-size.cjs` to check automatic popup sizing in Chinese and English with zero and 172 notes, plus responsive manager layouts. It uses a temporary profile without personal browser data. A tab with a fixed viewport cannot replace this check.
+
 The packer writes Chrome, Edge and Firefox ZIPs to `dist/`, including the license and documentation.
 
 Every push to `main` runs [the release workflow](.github/workflows/release.yml), checks the source, builds the packages and publishes a GitHub Release using the built-in `GITHUB_TOKEN`. Incomplete releases remain drafts. Rerunning the same workflow run reuses its version.

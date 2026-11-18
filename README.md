@@ -63,6 +63,8 @@ python3 tests/check-packages.py
 
 用浏览器打开 `tests/content.html`，页面显示 `PASS` 表示备注去重、显示范围、编辑、具体时间开关和动态更新回归检查通过。
 
+可选的真实工具栏弹窗回归检查需要桌面 Chrome 和 Playwright（`npm install --no-save --package-lock=false playwright`）：运行 `node tests/popup-size.cjs`，检查中英文、空列表、172 条备注时的自动尺寸和管理页响应式布局。测试使用独立临时配置，不读取个人浏览器数据；不能用固定视口的标签页代替此检查。
+
 `dist/` 生成 Chrome、Edge、Firefox 三个 ZIP，包内包含许可证和安装说明。
 
 推送到 `main` 后，[Release 工作流](.github/workflows/release.yml) 自动检查、打包并发布 GitHub Release，使用 GitHub 自带的 `GITHUB_TOKEN`。失败时不会公开未完成的 Release，重跑同一次工作流沿用同一版本。

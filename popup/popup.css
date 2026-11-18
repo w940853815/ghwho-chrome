@@ -51,10 +51,9 @@ html, body {
 }
 
 body {
+  /* 工具栏弹窗按内容自动定尺寸，vw/vh 限制会使初始小视口无法展开。 */
   width: 400px;
-  max-width: 100vw;
   height: 590px;
-  max-height: 100vh;
   display: flex;
   flex-direction: column;
 }
